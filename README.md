@@ -1,4 +1,4 @@
-# TrafficLightUsingARM
+# Traffic Light Controller ARM
 ## Description: 
 This projects lets user to change traffic light signals in Red, Green, Yellow using Switch values (1,2,3). For any input boyond the defined ones, the user will get a message in JTAG UART as "Invalid Input!". 
 
