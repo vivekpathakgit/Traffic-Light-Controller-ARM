@@ -1,0 +1,96 @@
+.section .data
+    .equ VGA_WIDTH, 800              @ VGA display width in pixels
+    .equ VGA_Green, 0x07E0            @ VGA display height in pixels
+	.equ VGA_Red, 0xF800
+	.equ VGA_Yellow, 0xFFE0
+	.equ pixelBuffer, 0xc8000000 
+	.equ uperLimit, 0xc8040000
+	invalidMessage: .asciz "Invalid Input! \n"
+	
+.section .bss
+    .lcomm pixelBuffer, VGA_WIDTH * VGA_Green * 2  @ Allocate space for pixel buffer (assuming 16-bit color depth)
+
+.section .text
+.global _start
+_start:
+    @ Initialize pixel buffer with red color
+    ldr r0, =0xc8000000               @ Load the address of the pixel buffer into r0
+    ldr r1, =VGA_WIDTH                @ Load the width of the display into r1
+    ldr r2, =VGA_Green               @ Load the height of the display into r2
+	ldr r9, =0xff200040
+	ldr r4, =uperLimit
+	ldr r5, =VGA_Red
+	ldr r6, =VGA_Yellow
+	ldr r8, =invalidMessage
+	ldr r10, =0xff201000
+	clearCheck:
+	ldr r0, =0xc8000000
+	ldr r12, [r9]
+	cmp r12, #0
+	beq L2
+	b clearCheck
+	
+L2: 
+	ldr r12, [r9]
+	cmp r12,#0
+	beq L2
+L3: 
+	cmp r12, #2
+	beq loop_R
+L4:
+	cmp r12, #4
+	beq loop_Y
+L5:
+	ldr r12, [r9]
+	cmp r12, #8
+	beq loop_G
+	b invalidInput
+	
+    loop_R:
+        mov r3, r5                   
+        loop_0:
+            strh r3, [r0], #2        
+            subs r1, #1      
+			cmp r0, r4
+			beq clearCheck
+            bne loop_0
+
+        subs r2, #1                  
+        bne loop_R
+	
+	loop_G:
+        mov r3, r2                   
+        loop_1:
+            strh r3, [r0], #2        
+            subs r1, #1      
+			cmp r0, r4
+			beq clearCheck
+            bne loop_1
+
+        subs r2, #1                  
+        bne loop_G
+	loop_Y:
+        mov r3, r6                   
+        loop_2:
+            strh r3, [r0], #2        
+            subs r1, #1      
+			cmp r0, r4
+			beq clearCheck
+            bne loop_2
+
+        subs r2, #1                 
+        bne loop_Y
+		
+	invalidInput: 
+	mov r11, r8
+    P2: ldrb r12, [r11], #1           
+  	cmp r12, #0                  
+  	beq clearCheck
+  	str r12, [r10]					@ Write the character to the simulated JTAG UART
+  	b P2
+	
+
+
+	
+	
+	
